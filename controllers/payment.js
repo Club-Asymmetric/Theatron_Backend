@@ -1,5 +1,6 @@
 const bodyParser = require('body-parser');
 const Razorpay = require('razorpay');
+const crypto = require('crypto');
 const expressAsyncHandler = require('express-async-handler');
 require('dotenv').config();
 
@@ -9,6 +10,10 @@ const razorpay = new Razorpay({
 });
 const get_order = expressAsyncHandler(async (req, res) => {
   const { amount, currency, receipt } = req.body;
+  if (!amount || !currency || !receipt) {
+    res.status(400).send("Missing required fields");
+    return;
+  }
   try {
     const options = {
       amount: amount * 100, 
@@ -29,7 +34,7 @@ const verify_payment = expressAsyncHandler(async (req, res) => {
                                      .update(`${order_id}|${payment_id}`)
                                      .digest('hex');
   if (generated_signature === signature) {
-    res.send("Payment verified successfully");
+    res.status(200).send("Payment verified successfully");
   } else {
     res.status(400).send("Payment verification failed");
   }
