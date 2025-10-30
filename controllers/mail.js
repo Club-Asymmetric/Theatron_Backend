@@ -21,11 +21,11 @@ const send_mail = expressAsyncHandler(async (req, res) => {
         subject: subject,
         text: text,
     };
-
+    console.log("Sending email to:", to);
     await transporter.sendMail(mailOptions);
     res.status(200).json({ success: true, message: 'Email sent successfully!' });
 }catch(error){
-    res.status(500).json({success:fail,message:"failed to send email"});
+    res.status(500).json({success:false,message:"failed to send email"});
 }
 });
 
