@@ -11,6 +11,7 @@
   "description": "",
   "dependencies": {
     "googleapis": "^164.0.0",
+    "nodemailer": "^7.0.10",
     "razorpay": "^2.9.6"
   }
 }

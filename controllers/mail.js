@@ -6,7 +6,7 @@ subject ="Registration Confirmation ";
 
 const send_mail = expressAsyncHandler(async (req, res) => {
   const { to, event} = req.body;
-  const text = "Email Content";
+  const text = "Your Registration for the event " + event + " is successful.We look forward to your participation! at November 14 2025 in Chennai Institute of Technology Thank you!";
     try {
     let transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -25,6 +25,8 @@ const send_mail = expressAsyncHandler(async (req, res) => {
     await transporter.sendMail(mailOptions);
     res.status(200).json({ success: true, message: 'Email sent successfully!' });
 }catch(error){
-    res.send(500).json({success:fail,message:"failed to send email"});
+    res.status(500).json({success:fail,message:"failed to send email"});
 }
 });
+
+module.exports = { send_mail };
