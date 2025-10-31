@@ -6,7 +6,21 @@ subject ="Registration Confirmation ";
 
 const send_mail = expressAsyncHandler(async (req, res) => {
   const { to, event} = req.body;
-  const text = "Your Registration for the event " + event + " is successful.We look forward to your participation! at November 14 2025 in Chennai Institute of Technology Thank you!";
+  const text = `Subject: Registration Confirmation – Theatron (Hosted by Immerse & Resolution Clubs of CIT)
+
+Dear Participant,
+
+We are pleased to inform you that your registration for *Theatron*, a film festival hosted by the Immerse and Resolution Clubs of Chennai Institute of Technology, has been successfully completed.
+
+We look forward to your enthusiastic participation on **November 14, 2025**, at **Chennai Institute of Technology**.
+
+Thank you for registering and being part of Theatron 2025!
+
+Warm regards,  
+Organizing Committee  
+Immerse & Resolution Clubs  
+Chennai Institute of Technology`;
+
     try {
     let transporter = nodemailer.createTransport({
       service: 'gmail',
