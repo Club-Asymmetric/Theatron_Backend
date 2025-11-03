@@ -40,7 +40,7 @@ const solo_event = expressAsyncHandler(async (req, res) => {
   const event = req.params.event;
   const data = [req.body.name, req.body.phone, req.body.email, req.body.college];
   if (event === 'CinePlus') {
-    data.push(req.body.short_film_link || '');
+    data.push(req.body.short_flim_link || '');
   }
   try {
     await register(event, data);
