@@ -15,6 +15,9 @@ app.use(cors());
 app.use('/register',reg);
 app.use('/payment',payment);
 app.use('/mail',mail);
+app.get('/ping',(req,res)=>{
+    res.send('pong');
+});
 
 app.listen(port,(req,res)=>{
     console.log(`Server is running on localhost:${port}`)
