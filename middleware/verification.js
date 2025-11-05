@@ -44,3 +44,5 @@ const verify_payment = expressAsyncHandler(async (req, res,next) => {
     res.status(400).send("Payment verification failed");
   }
 });
+
+module.exports = verify_payment;
