@@ -36,6 +36,7 @@ const get_order = expressAsyncHandler(async (req, res) => {
 // Verify Razorpay Payment
 const verify_payment = expressAsyncHandler(async (req, res) => {
   const { payment_id, order_id, signature } = req.body;
+  const {name , email, phone, college,event} = req.body;
 
   const generated_signature = crypto
     .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
@@ -43,6 +44,7 @@ const verify_payment = expressAsyncHandler(async (req, res) => {
     .digest('hex');
 
   if (generated_signature === signature) {
+    console.log(`Payment verified successfully for event: ${event} by name: ${name}, email: ${email}, phone: ${phone}, college: ${college}`);
     res.status(200).send("Payment verified successfully");
   } else {
     res.status(400).send("Payment verification failed");
