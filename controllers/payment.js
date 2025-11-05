@@ -12,7 +12,7 @@ const razorpay = new Razorpay({
 // Create Razorpay Order
 const get_order = expressAsyncHandler(async (req, res) => {
   const { amount, currency, receipt } = req.body;
-
+  console.log("Creating order with data:", req.body);
   if (!amount || !currency || !receipt) {
     res.status(400).send("Missing required fields");
     return;
@@ -35,6 +35,7 @@ const get_order = expressAsyncHandler(async (req, res) => {
 
 // Verify Razorpay Payment
 const verify_payment = expressAsyncHandler(async (req, res) => {
+  console.log("Verifying payment with data:", req.body);
   const { payment_id, order_id, signature } = req.body;
   const {name , email, phone, college,event} = req.body;
 
