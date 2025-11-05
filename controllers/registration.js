@@ -54,21 +54,14 @@ const solo_event = expressAsyncHandler(async (req, res) => {
 // ✅ Group event registration
 const group_event = expressAsyncHandler(async (req, res) => {
   const event = req.params.event;
-  const team_size = req.body.team_size;
-
-  if (event === 'Adapt_tune' && team_size > 2) {
-    res.send('Invalid team size for Adapt_tune');
-    return;
+  let team_size = 0;
+  if (event === 'AdaptTune'){
+    team_size = 2;
   }
-  if (event === 'Quizcorn' && team_size > 3) {
-    res.send('Invalid team size for Quizcorn');
-    return;
+  else if (event === 'Quizcorn'){
+    team_size = 3;
   }
 
-  if (team_size < 1 || team_size > 10) {
-    res.send('Invalid team size');
-    return;
-  }
 
   let data = [`${req.body.team_name}`];
   for (let i = 1; i <= team_size; i++) {
@@ -77,11 +70,11 @@ const group_event = expressAsyncHandler(async (req, res) => {
     data.push(`${participantName}`, `${participantCollege}`);
   }
 
-  // Fill remaining empty slots
-  const remaining = 10 - team_size;
-  for (let j = 0; j < remaining; j++) {
-    data.push(``, ``);
-  }
+  // // Fill remaining empty slots
+  // const remaining = 10 - team_size;
+  // for (let j = 0; j < remaining; j++) {
+  //   data.push(``, ``);
+  // }
 
   data.push(req.body.phone, req.body.email);
 
