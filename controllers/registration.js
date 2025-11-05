@@ -39,6 +39,9 @@ async function register(sheetName, data) {
 const solo_event = expressAsyncHandler(async (req, res) => {
   const event = req.params.event;
   const data = [req.body.name, req.body.phone, req.body.email, req.body.college];
+  if(event === 'General_Pass'){
+    data[3] = req.body.department;
+  }
   if (event === 'CinePlus') {
     data.push(req.body.short_flim_link || '');
   }
