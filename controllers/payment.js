@@ -9,7 +9,6 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// Create Razorpay Order
 const get_order = expressAsyncHandler(async (req, res) => {
   const { amount, currency, receipt } = req.body;
   console.log("Creating order with data:", req.body);
@@ -20,7 +19,7 @@ const get_order = expressAsyncHandler(async (req, res) => {
 
   try {
     const options = {
-      amount: amount * 100, // convert to smallest currency unit
+      amount: amount * 100, 
       currency: currency,
       receipt: receipt,
     };
@@ -33,7 +32,6 @@ const get_order = expressAsyncHandler(async (req, res) => {
   }
 });
 
-// Verify Razorpay Payment
 const verify_payment = expressAsyncHandler(async (req, res) => {
   console.log("Verifying payment with data:", req.body);
   const { payment_id, order_id, signature } = req.body;

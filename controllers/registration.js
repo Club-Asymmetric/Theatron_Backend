@@ -4,38 +4,55 @@ const { google } = require('googleapis');
 const expressAsyncHandler = require('express-async-handler');
 require('dotenv').config({ path: __dirname + '/.env' });
 
-// ✅ Load Google credentials from .env
 const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
 
-// ✅ Initialize Google Auth
 const auth = new google.auth.GoogleAuth({
   credentials,
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
 
-// ✅ Initialize Sheets API client
 const sheets = google.sheets({ version: 'v4', auth });
 
-// Function to append registration data
 async function register(sheetName, data) {
   try {
     console.log('Sheet name received:', sheetName);
+
+    const readResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.sheetId,
+      range: `${sheetName}!A1:D`, 
+    });
+
+    const rows = readResponse.data.values || [];
+
+    const existing = rows.some(
+      (row) =>
+        (row[2] && row[2].toLowerCase() === data[2].toLowerCase()) // compare email
+    );
+
+    if (existing) {
+      console.log(`Duplicate found for ${sheetName} by ${data[2]}! Data not added.`);
+      return { success: true, message: 'Success!' };
+    }
+
     await sheets.spreadsheets.values.append({
       spreadsheetId: process.env.sheetId,
-      range: `${sheetName}!A1`, // Append to sheet
+      range: `${sheetName}!A1`,
       valueInputOption: 'RAW',
       insertDataOption: 'INSERT_ROWS',
       resource: {
         values: [data],
       },
     });
-    console.log(`Data added to ${sheetName} successfully!`);
+
+    console.log(`✅ Data added to ${sheetName} successfully!`);
+    return { success: true, message: 'Data added successfully' };
+
   } catch (error) {
-    console.error('Error adding data:', error);
+    console.error('❌ Error adding data:', error);
+    return { success: false, message: 'Error adding data' };
   }
 }
 
-// ✅ Solo event registration
 const solo_event = expressAsyncHandler(async (req, res) => {
   const event = req.params.event;
   const data = [req.body.name, req.body.phone, req.body.email, req.body.college];
@@ -54,7 +71,6 @@ const solo_event = expressAsyncHandler(async (req, res) => {
   }
 });
 
-// ✅ Group event registration
 const group_event = expressAsyncHandler(async (req, res) => {
   const event = req.params.event;
   let team_size = 0;
@@ -73,11 +89,6 @@ const group_event = expressAsyncHandler(async (req, res) => {
     data.push(`${participantName}`, `${participantCollege}`);
   }
 
-  // // Fill remaining empty slots
-  // const remaining = 10 - team_size;
-  // for (let j = 0; j < remaining; j++) {
-  //   data.push(``, ``);
-  // }
 
   data.push(req.body.phone, req.body.email);
 
