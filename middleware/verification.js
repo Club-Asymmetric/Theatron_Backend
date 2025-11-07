@@ -12,7 +12,7 @@ const verify_payment = expressAsyncHandler(async (req, res,next) => {
       return;
     }
   }
-  if(event ==='Graphics_Grid' || event ==='Stage_play' || event ==='Still_Of_Soul'  || event ==='Quizcorn' || event==='Photography_Workshop' || event ==='Blast_in_Blender'){
+  if(event ==='Graphics_Grid' || event ==='Stage_play' || event ==='Still_Of_Soul' || event ==='AdaptTune'  || event ==='Quizcorn' || event==='Photography_Workshop' || event ==='Blast_in_Blender'){
     if(amount != 99){
       res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
       return;
