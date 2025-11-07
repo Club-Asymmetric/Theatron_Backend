@@ -10,11 +10,44 @@ const razorpay = new Razorpay({
 });
 
 const get_order = expressAsyncHandler(async (req, res) => {
-  const { amount, currency, receipt } = req.body;
+  const { amount, currency, receipt, event } = req.body;
   console.log("Creating order with data:", req.body);
   if (!amount || !currency || !receipt) {
     res.status(400).send("Missing required fields");
     return;
+  }
+  if(event === 'General_Pass'){
+    if(amount != 89){
+      res.status(400).send("Invalid amount for General Pass,Please contact the admin");
+      return;
+    }
+  }
+  if(event ==='Graphics_Grid' || event ==='Stage_Play' || event ==='Stills_Of_Soul' || event ==='AdaptTune' || event ==='Quizcorn' || event==='Photography_Workshop' || event ==='Blast_in_Blender'){
+    if(amount != 99){
+      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
+      return;
+    }
+  }
+
+  if(event ==='Script_Writing' || event ==='TrailerCut'){
+    if(amount !=150){
+      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
+      return;
+    }
+  }
+
+  if(event ==='CinePlus' ){
+    if(amount != 149){
+      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
+      return;
+    }
+  }
+
+  if(event === 'Dance_Workshop'|| event ==='Model_workshop'){
+    if(amount != 199){
+      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
+      return;
+    }
   }
 
   try {
@@ -43,23 +76,30 @@ const verify_payment = expressAsyncHandler(async (req, res) => {
       return;
     }
   }
-  if(event ==='Graphics_Grid' || event ==='Stage_play' || event ==='Still_Of_Soul' || event ==='AdaptTune' || event ==='Quizcorn' ){
+  if(event ==='Graphics_Grid' || event ==='Stage_play' || event ==='Still_Of_Soul' || event ==='AdaptTune' || event ==='Quizcorn' || event==='Photography_Workshop' || event ==='Blast_in_Blender'){
     if(amount != 99){
-      res.status(400).send("Invalid amount for selected event,Please contact the admin");
+      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
       return;
     }
   }
 
   if(event ==='Script_Writing' || event ==='TrailerCut'){
     if(amount !=150){
-      res.status(400).send("Invalid amount for selected event,Please contact the admin");
+      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
       return;
     }
   }
 
   if(event ==='CinePlus' ){
     if(amount != 149){
-      res.status(400).send("Invalid amount for CinePlus event,Please contact the admin");
+      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
+      return;
+    }
+  }
+
+  if(event === 'Dance_Workshop'|| event ==='Model_workshop'){
+    if(amount != 199){
+      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
       return;
     }
   }

@@ -1,5 +1,6 @@
 const express =require('express');
 const cors = require('cors');
+const {send_mail} = require('./mail_sending');
 require('dotenv').config();
 
 const reg=require('./routers/registration');
@@ -15,6 +16,7 @@ app.use(cors());
 app.use('/register',reg);
 app.use('/payment',payment);
 app.use('/mail',mail);
+app.use('/send_mail',send_mail);
 app.get('/ping',(req,res)=>{
     res.send('pong');
 });
