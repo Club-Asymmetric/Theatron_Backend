@@ -3,7 +3,6 @@ const crypto = require('crypto');
 require('dotenv').config();
 
 const verify_payment = expressAsyncHandler(async (req, res,next) => {
-  console.log("Verifying payment with data:", req.body);
   const { payment_id, order_id, signature } = req.body;
   const {name , email, phone, college,event} = req.body;
   const amount = req.body.amount;
