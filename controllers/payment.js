@@ -17,10 +17,8 @@ const get_order = expressAsyncHandler(async (req, res) => {
     return;
   }
   if(event === 'General_Pass'){
-    if(amount != 89){
-      res.status(400).send("Invalid amount for General Pass,Please contact the admin");
+      res.status(400).send("Event Registration for General Pass is Closed , Try to register for other events");
       return;
-    }
   }
   if(event ==='Graphics_Grid' || event ==='Stage_Play' || event ==='Stills_Of_Soul' ||  event ==='AdaptTune' || event ==='Quizcorn' || event==='Photography_Workshop' || event ==='Blast_in_Blender'){
     if(amount != 99){
@@ -70,11 +68,9 @@ const verify_payment = expressAsyncHandler(async (req, res) => {
   const { payment_id, order_id, signature } = req.body;
   const {name , email, phone, college,event} = req.body;
   const amount = req.body.amount;
-  if(event === 'General_Pass'){
-    if(amount != 89){
-      res.status(400).send("Invalid amount for General Pass,Please contact the admin");
+   if(event === 'General_Pass'){
+      res.status(400).send("Event Registration for General Pass is Closed , Try to register for other events");
       return;
-    }
   }
   if(event ==='Graphics_Grid' || event ==='Stage_play' || event ==='Still_Of_Soul' || event ==='AdaptTune' || event ==='Quizcorn' || event==='Photography_Workshop' || event ==='Blast_in_Blender'){
     if(amount != 99){
