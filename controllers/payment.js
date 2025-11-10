@@ -11,14 +11,14 @@ const razorpay = new Razorpay({
 
 const get_order = expressAsyncHandler(async (req, res) => {
   const { amount, currency, receipt, event } = req.body;
+  if(event === 'General_Pass'){
+      res.status(400).send("Event Registration for General Pass is Closed , Try to register for other events");
+      return;
+  }
   console.log("Creating order with data:", req.body);
   if (!amount || !currency || !receipt) {
     res.status(400).send("Missing required fields");
     return;
-  }
-  if(event === 'General_Pass'){
-      res.status(400).send("Event Registration for General Pass is Closed , Try to register for other events");
-      return;
   }
   if(event ==='Graphics_Grid' || event ==='Stage_Play' || event ==='Stills_Of_Soul' ||  event ==='AdaptTune' || event ==='Quizcorn' || event==='Photography_Workshop' || event ==='Blast_in_Blender'){
     if(amount != 99){
