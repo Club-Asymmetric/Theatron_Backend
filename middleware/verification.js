@@ -31,7 +31,7 @@ const verify_payment = expressAsyncHandler(async (req, res,next) => {
     }
   }
 
-  if(event === 'Dance_Workshop'){
+  if(event === 'Dance_Workshop'|| event ==='Model_workshop'){
     if(amount != 199){
       res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
       return;
