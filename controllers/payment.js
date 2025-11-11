@@ -20,7 +20,7 @@ const get_order = expressAsyncHandler(async (req, res) => {
     res.status(400).send("Missing required fields");
     return;
   }
-  if(event ==='Graphics_Grid' || event ==='Stage_Play' || event ==='Stills_Of_Soul' ||  event ==='AdaptTune'|| event==='Photography_Workshop' || event ==='Blast_in_Blender'){
+  if(event ==='Graphics_Grid' || event ==='Stage_Play' || event ==='Stills_Of_Soul' ||  event ==='AdaptTune'|| event==='Photography_Workshop' ){
     if(amount != 99){
       res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
       return;
@@ -72,7 +72,7 @@ const verify_payment = expressAsyncHandler(async (req, res) => {
       res.status(400).send(`Event Registration for ${event} is Closed , Try to register for other events`);
       return;
   }
-  if(event ==='Graphics_Grid' || event ==='Stage_play' || event ==='Still_Of_Soul' || event ==='AdaptTune'  || event==='Photography_Workshop' || event ==='Blast_in_Blender'){
+  if(event ==='Graphics_Grid' || event ==='Stage_play' || event ==='Still_Of_Soul' || event ==='AdaptTune'  || event==='Photography_Workshop' ){
     if(amount != 99){
       res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
       return;
