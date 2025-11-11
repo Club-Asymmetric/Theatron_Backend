@@ -11,8 +11,8 @@ const razorpay = new Razorpay({
 
 const get_order = expressAsyncHandler(async (req, res) => {
   const { amount, currency, receipt, event } = req.body;
-  if(event === 'General_Pass'){
-      res.status(400).send("Event Registration for General Pass is Closed , Try to register for other events");
+  if(event === 'General_Pass'|| event ==='Quizcorn'){
+      res.status(400).send(`Event Registration for ${event} is Closed , Try to register for other events`);
       return;
   }
   console.log("Creating order with data:", req.body);
@@ -20,7 +20,7 @@ const get_order = expressAsyncHandler(async (req, res) => {
     res.status(400).send("Missing required fields");
     return;
   }
-  if(event ==='Graphics_Grid' || event ==='Stage_Play' || event ==='Stills_Of_Soul' ||  event ==='AdaptTune' || event ==='Quizcorn' || event==='Photography_Workshop' || event ==='Blast_in_Blender'){
+  if(event ==='Graphics_Grid' || event ==='Stage_Play' || event ==='Stills_Of_Soul' ||  event ==='AdaptTune'|| event==='Photography_Workshop' || event ==='Blast_in_Blender'){
     if(amount != 99){
       res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
       return;
@@ -68,11 +68,11 @@ const verify_payment = expressAsyncHandler(async (req, res) => {
   const { payment_id, order_id, signature } = req.body;
   const {name , email, phone, college,event} = req.body;
   const amount = req.body.amount;
-   if(event === 'General_Pass'){
-      res.status(400).send("Event Registration for General Pass is Closed , Try to register for other events");
+   if(event === 'General_Pass'|| event ==='Quizcorn'){
+      res.status(400).send(`Event Registration for ${event} is Closed , Try to register for other events`);
       return;
   }
-  if(event ==='Graphics_Grid' || event ==='Stage_play' || event ==='Still_Of_Soul' || event ==='AdaptTune' || event ==='Quizcorn' || event==='Photography_Workshop' || event ==='Blast_in_Blender'){
+  if(event ==='Graphics_Grid' || event ==='Stage_play' || event ==='Still_Of_Soul' || event ==='AdaptTune'  || event==='Photography_Workshop' || event ==='Blast_in_Blender'){
     if(amount != 99){
       res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
       return;
