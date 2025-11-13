@@ -6,9 +6,15 @@ const verify_payment = expressAsyncHandler(async (req, res,next) => {
   const { payment_id, order_id, signature } = req.body;
   const {name , email, phone, college,event} = req.body;
   const amount = req.body.amount;
-   if(event === 'General_Pass'|| event ==='Quizcorn'){
+   if(event ==='Quizcorn'){
       res.status(400).send(`Event Registration for ${event} is Closed , Try to register for other events`);
       return;
+  }
+  if (event === 'General_Pass') {
+     if(amount !=89){
+      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
+      return;
+    }
   }
   if(event ==='Graphics_Grid' || event ==='Stage_play' || event ==='Still_Of_Soul' || event ==='AdaptTune'   || event==='Photography_Workshop' ){
     if(amount != 99){
