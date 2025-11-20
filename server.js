@@ -18,6 +18,8 @@ app.use('/payment',payment);
 app.use('/mail',mail);
 app.use('/send_mail',send_mail);
 app.get('/ping',(req,res)=>{
+    const ip = req.ip;
+    console.log(`received req from ${ip}`);
     res.send('pong');
 });
 
