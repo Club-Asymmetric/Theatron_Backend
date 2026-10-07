@@ -1,127 +1,144 @@
-const bodyParser = require('body-parser');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const expressAsyncHandler = require('express-async-handler');
-require('dotenv').config();
+const { EVENTS, validateEventDetails } = require('../services/eventValidation');
+const registrationStore = require('../services/registrationStore');
+const { sendConfirmationEmail } = require('../services/email');
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+const REGISTRATION_AMOUNT = 9900;
+const CURRENCY = 'INR';
+const verificationLocks = new Map();
+
+function getRazorpay() {
+  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+    throw new Error('Razorpay is not configured');
+  }
+  return new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+  });
+}
+
+function timingSafeEqualHex(left, right) {
+  const leftBuffer = Buffer.from(left, 'hex');
+  const rightBuffer = Buffer.from(right, 'hex');
+  return leftBuffer.length === rightBuffer.length
+    && crypto.timingSafeEqual(leftBuffer, rightBuffer);
+}
+
+function participantsFrom(body) {
+  const teamSize = Number(body.teamSize);
+  if (!Number.isInteger(teamSize)) return [];
+  return Array.from({ length: teamSize }, (_, index) => ({
+    name: body[`participant${index + 1}Name`],
+    phone: body[`participant${index + 1}Phone`],
+  }));
+}
 
 const get_order = expressAsyncHandler(async (req, res) => {
-  const { amount, currency, receipt, event } = req.body;
-  if( event ==='Quizcorn'){
-      res.status(400).send(`Event Registration for ${event} is Closed , Try to register for other events`);
-      return;
-  }
-  console.log("Creating order with data:", req.body);
-  if (event === 'General_Pass') {
-     if(amount !=89){
-      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
-      return;
-    }
-  }
-  if (!amount || !currency || !receipt) {
-    res.status(400).send("Missing required fields");
-    return;
-  }
-  if(event ==='Graphics_Grid' || event ==='Stage_Play' || event ==='Stills_Of_Soul' ||  event ==='AdaptTune'|| event==='Photography_Workshop' ){
-    if(amount != 99){
-      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
-      return;
-    }
+  const { event, receipt } = req.body || {};
+  if (!EVENTS.has(event)) return res.status(400).json({ error: 'Invalid event' });
+  if (typeof receipt !== 'string' || !receipt.trim()) {
+    return res.status(400).json({ error: 'receipt is required' });
   }
 
-  if(event ==='Script_Writing' || event ==='TrailerCut'){
-    if(amount !=150){
-      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
-      return;
-    }
-  }
-
-  if(event ==='CinePlus' ){
-    if(amount != 149){
-      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
-      return;
-    }
-  }
-
-  if(event === 'Dance_Workshop'|| event ==='Model_workshop'){
-    if(amount != 199){
-      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
-      return;
-    }
-  }
-
-  try {
-    const options = {
-      amount: amount * 100, 
-      currency: currency,
-      receipt: receipt,
-    };
-
-    const order = await razorpay.orders.create(options);
-    res.json(order);
-  } catch (error) {
-    console.error('Error creating Razorpay order:', error);
-    res.status(500).send("Internal Server Error");
-  }
+  const order = await getRazorpay().orders.create({
+    amount: REGISTRATION_AMOUNT,
+    currency: CURRENCY,
+    receipt: receipt.trim(),
+  });
+  return res.json({
+    id: order.id,
+    amount: REGISTRATION_AMOUNT,
+    currency: CURRENCY,
+    receipt: order.receipt || receipt.trim(),
+  });
 });
 
 const verify_payment = expressAsyncHandler(async (req, res) => {
-  console.log("Verifying payment with data:", req.body);
-  const { payment_id, order_id, signature } = req.body;
-  const {name , email, phone, college,event} = req.body;
-  const amount = req.body.amount;
-   if( event ==='Quizcorn'){
-      res.status(400).send(`Event Registration for ${event} is Closed , Try to register for other events`);
-      return;
-  }
-  if (event === 'General_Pass') {
-     if(amount !=89){
-      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
-      return;
-    }
-  }
-  if(event ==='Graphics_Grid' || event ==='Stage_play' || event ==='Still_Of_Soul' || event ==='AdaptTune'  || event==='Photography_Workshop' ){
-    if(amount != 99){
-      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
-      return;
-    }
+  const body = req.body || {};
+  const {
+    event,
+    razorpay_payment_id: paymentId,
+    razorpay_order_id: orderId,
+    razorpay_signature: signature,
+  } = body;
+
+  const validationError = validateEventDetails(event, body);
+  if (validationError) return res.status(400).json({ error: validationError });
+  if (!paymentId || !orderId || !signature) {
+    return res.status(400).json({ error: 'Payment verification fields are required' });
   }
 
-  if(event ==='Script_Writing' || event ==='TrailerCut'){
-    if(amount !=150){
-      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
-      return;
-    }
-  }
+  const lockKey = `${paymentId}:${orderId}`;
+  if (verificationLocks.has(lockKey)) return verificationLocks.get(lockKey);
 
-  if(event ==='CinePlus' ){
-    if(amount != 149){
-      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
-      return;
-    }
-  }
+  const operation = (async () => {
+    const secret = process.env.RAZORPAY_KEY_SECRET;
+    if (!secret) return res.status(500).json({ error: 'Payment service is not configured' });
 
-  if(event === 'Dance_Workshop'|| event ==='Model_workshop'){
-    if(amount != 199){
-      res.status(400).send(`Invalid amount for ${event},Please contact the admin`);
-      return;
+    const generatedSignature = crypto.createHmac('sha256', secret)
+      .update(`${orderId}|${paymentId}`)
+      .digest('hex');
+    if (!timingSafeEqualHex(generatedSignature, signature)) {
+      return res.status(401).json({ error: 'Payment verification failed' });
     }
-  }
-  const generated_signature = crypto
-    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-    .update(`${order_id}|${payment_id}`)
-    .digest('hex');
 
-  if (generated_signature === signature) {
-    console.log(`Payment verified successfully for event: ${event} by name: ${name}, email: ${email}, phone: ${phone}, college: ${college}`);
-    res.status(200).send("Payment verified successfully");
-  } else {
-    res.status(400).send("Payment verification failed");
+    const razorpay = getRazorpay();
+    const [order, payment] = await Promise.all([
+      razorpay.orders.fetch(orderId),
+      razorpay.payments.fetch(paymentId),
+    ]);
+    if (order.amount !== REGISTRATION_AMOUNT || order.currency !== CURRENCY
+      || payment.order_id !== orderId || payment.amount !== REGISTRATION_AMOUNT
+      || !['captured', 'authorized'].includes(payment.status)) {
+      return res.status(401).json({ error: 'Payment amount or order mismatch' });
+    }
+
+    const registration = {
+      registrationId: `reg_${Date.now()}_${crypto.randomBytes(5).toString('hex')}`,
+      createdAt: new Date().toISOString(),
+      event,
+      name: body.name.trim(),
+      email: body.email.trim().toLowerCase(),
+      phone: body.phone.trim(),
+      college: body.college.trim(),
+      department: body.department.trim(),
+      year: body.year.trim(),
+      submissionLink: body.submissionLink,
+      teamSize: body.teamSize,
+      participants: participantsFrom(body),
+      razorpayPaymentId: paymentId,
+      razorpayOrderId: orderId,
+      amount: REGISTRATION_AMOUNT,
+      paymentStatus: payment.status || 'captured',
+    };
+    const saved = await registrationStore.createRegistration(registration);
+    if (saved.duplicate) return res.status(409).json({ error: 'Payment already registered' });
+
+    try {
+      await sendConfirmationEmail({ to: registration.email, name: registration.name, event });
+      return res.status(201).json({
+        success: true,
+        registrationId: saved.registrationId,
+        message: 'Registration confirmed',
+      });
+    } catch (error) {
+      return res.status(201).json({
+        success: true,
+        registrationId: saved.registrationId,
+        message: 'Registration confirmed, but confirmation email delivery failed',
+        emailSent: false,
+      });
+    }
+  })();
+
+  verificationLocks.set(lockKey, operation);
+  try {
+    return await operation;
+  } finally {
+    verificationLocks.delete(lockKey);
   }
 });
 
-module.exports = { get_order, verify_payment };
+module.exports = { get_order, verify_payment, REGISTRATION_AMOUNT };

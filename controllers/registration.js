@@ -4,19 +4,21 @@ const { google } = require('googleapis');
 const expressAsyncHandler = require('express-async-handler');
 require('dotenv').config({ path: __dirname + '/.env' });
 
-const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+const credentials = process.env.GOOGLE_CREDENTIALS
+  ? JSON.parse(process.env.GOOGLE_CREDENTIALS)
+  : null;
 
-const auth = new google.auth.GoogleAuth({
-  credentials,
-  scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-});
-
-const sheets = google.sheets({ version: 'v4', auth });
+const auth = credentials
+  ? new google.auth.GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  })
+  : null;
+const sheets = auth ? google.sheets({ version: 'v4', auth }) : null;
 
 async function register(sheetName, data) {
   try {
-    console.log('Sheet name received:', sheetName);
-
+    if (!sheets || !process.env.sheetId) throw new Error('Google Sheets is not configured');
     const readResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.sheetId,
       range: `${sheetName}!A1:D`, 
@@ -30,7 +32,6 @@ async function register(sheetName, data) {
     );
 
     if (existing) {
-      console.log(`Duplicate found for ${sheetName} by ${data[2]}! Data not added.`);
       return { success: true, message: 'Success!' };
     }
 
@@ -44,7 +45,6 @@ async function register(sheetName, data) {
       },
     });
 
-    console.log(`✅ Data added to ${sheetName} successfully!`);
     return { success: true, message: 'Data added successfully' };
 
   } catch (error) {

@@ -4,20 +4,25 @@ const { google } = require('googleapis');
 require('dotenv').config();
 
 // ✅ Initialize Google Sheets API
-const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
-const auth = new google.auth.GoogleAuth({
-  credentials,
-  scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-});
-const sheets = google.sheets({ version: 'v4', auth });
+const credentials = process.env.GOOGLE_CREDENTIALS
+  ? JSON.parse(process.env.GOOGLE_CREDENTIALS)
+  : null;
+const auth = credentials
+  ? new google.auth.GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  })
+  : null;
+const sheets = auth ? google.sheets({ version: 'v4', auth }) : null;
 
-const SUBJECT = "Registration Confirmation – Theatron’25 | Hosted by Immerse & Resolution Clubs, CIT";
+const SUBJECT = 'THEATRON 2026 – Event Details & Important Information';
 
 const send_mail = expressAsyncHandler(async (req, res) => {
   const sheetName = req.body.sheetName;
-  console.log(`📄 Reading sheet: ${sheetName}`);
-
   try {
+    if (!sheets || !process.env.sheetId) {
+      return res.status(500).json({ success: false, message: 'Google Sheets is not configured' });
+    }
     // Step 1️⃣ — Read all rows from A2:E
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.sheetId,
@@ -47,8 +52,6 @@ const send_mail = expressAsyncHandler(async (req, res) => {
     if (pending.length === 0)
       return res.status(200).json({ success: true, message: "All mails already sent." });
 
-    console.log(`📧 Found ${pending.length} pending recipients.`);
-
     // Step 3️⃣ — Configure Nodemailer
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -60,25 +63,34 @@ const send_mail = expressAsyncHandler(async (req, res) => {
 
     // Step 4️⃣ — Loop & send mails
     for (const person of pending) {
-      const text = `Subject: Registration Confirmed – Theatron’25 | Hosted by Immerse & Resolution Clubs, CIT
+      const eventName = sheetName
+        .split('-')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+      const text = `Dear ${person.name},
 
-Dear ${person.name},
+Greetings from Team IMMERSE, Chennai Institute of Technology!
 
-We are delighted to confirm your registration for Theatron’25, the film festival hosted by the Immerse and Resolution Clubs of Chennai Institute of Technology.
+Thank you for registering for THEATRON 2026, our inter-collegiate Film Festival. We’re excited to have you be a part of the event!
 
-We look forward to your enthusiastic participation on November 14, 2025, at Chennai Institute of Technology.
+Here are the details regarding your registered event:
 
-Please use this email to obtain OD (On Duty) approval from your institute if required.
+Event: ${eventName}
+Date: 10 November 2026
+Registration Fee: ₹99
 
-Thank you for joining us in celebrating creativity and cinematic expression at Theatron’25.
+The reporting time and venue details will be updated shortly. We request you to stay tuned for further updates.
 
-Warm regards,
-Organizing Committee
-Theatron’25
+For all the latest announcements, event updates and important information, do follow our official Instagram page: @immerse_cit.
+
+Please make sure to go through the event rules and guidelines before the event. Further instructions will also be shared with you through our official communication channels.
+
+We look forward to welcoming you to THEATRON 2026!
+
+Regards,
+Team IMMERSE
 Chennai Institute of Technology
-
-For any queries, contact us at:
-📞 +91 79048 49032`;
+THEATRON 2026`;
 
       const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -88,9 +100,7 @@ For any queries, contact us at:
       };
 
       try {
-        console.log(`📨 Sending mail to: ${person.email}`);
         await transporter.sendMail(mailOptions);
-        console.log(`✅ Mail sent to ${person.email}`);
 
         // Step 5️⃣ — Update Mail_Status + Timestamp
         const timestamp = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
@@ -103,7 +113,7 @@ For any queries, contact us at:
 
         await new Promise((r) => setTimeout(r, 1000)); // prevent Gmail rate limit
       } catch (err) {
-        console.error(`❌ Failed to send mail to ${person.email}: ${err.message}`);
+        console.error(`Failed to send confirmation mail: ${err.message}`);
       }
     }
 
