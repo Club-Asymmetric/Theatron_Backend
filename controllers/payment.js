@@ -1,11 +1,10 @@
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const expressAsyncHandler = require('express-async-handler');
-const { EVENTS, validateEventDetails } = require('../services/eventValidation');
+const { EVENTS, validateEventDetails, getRegistrationAmount } = require('../services/eventValidation');
 const registrationStore = require('../services/registrationStore');
 const { sendConfirmationEmail } = require('../services/email');
 
-const REGISTRATION_AMOUNT = 9900;
 const CURRENCY = 'INR';
 const verificationLocks = new Map();
 
@@ -42,14 +41,15 @@ const get_order = expressAsyncHandler(async (req, res) => {
     return res.status(400).json({ error: 'receipt is required' });
   }
 
+  const amount = getRegistrationAmount(event, req.body);
   const order = await getRazorpay().orders.create({
-    amount: REGISTRATION_AMOUNT,
+    amount: amount,
     currency: CURRENCY,
     receipt: receipt.trim(),
   });
   return res.json({
     id: order.id,
-    amount: REGISTRATION_AMOUNT,
+    amount: amount,
     currency: CURRENCY,
     receipt: order.receipt || receipt.trim(),
   });
@@ -89,8 +89,9 @@ const verify_payment = expressAsyncHandler(async (req, res) => {
       razorpay.orders.fetch(orderId),
       razorpay.payments.fetch(paymentId),
     ]);
-    if (order.amount !== REGISTRATION_AMOUNT || order.currency !== CURRENCY
-      || payment.order_id !== orderId || payment.amount !== REGISTRATION_AMOUNT
+    const expectedAmount = getRegistrationAmount(event, body);
+    if (order.amount !== expectedAmount || order.currency !== CURRENCY
+      || payment.order_id !== orderId || payment.amount !== expectedAmount
       || !['captured', 'authorized'].includes(payment.status)) {
       return res.status(401).json({ error: 'Payment amount or order mismatch' });
     }
@@ -110,7 +111,7 @@ const verify_payment = expressAsyncHandler(async (req, res) => {
       participants: participantsFrom(body),
       razorpayPaymentId: paymentId,
       razorpayOrderId: orderId,
-      amount: REGISTRATION_AMOUNT,
+      amount: expectedAmount,
       paymentStatus: payment.status || 'captured',
     };
     const saved = await registrationStore.createRegistration(registration);
@@ -141,4 +142,4 @@ const verify_payment = expressAsyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { get_order, verify_payment, REGISTRATION_AMOUNT };
+module.exports = { get_order, verify_payment };
