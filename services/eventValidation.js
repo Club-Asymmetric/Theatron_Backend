@@ -51,6 +51,9 @@ function validateEventDetails(event, body) {
   }
 
   if (event === 'stage-play' || event === 'debate' || event === 'adaptune') {
+    if ((event === 'stage-play' || event === 'debate') && (typeof body.teamName !== 'string' || !body.teamName.trim())) {
+      return 'teamName is required';
+    }
     const teamSize = Number(body.teamSize);
     let validTeamSize = false;
     let errorMessage = '';

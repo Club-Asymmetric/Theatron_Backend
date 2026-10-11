@@ -107,6 +107,7 @@ const verify_payment = expressAsyncHandler(async (req, res) => {
       department: body.department.trim(),
       year: body.year.trim(),
       submissionLink: body.submissionLink,
+      teamName: body.teamName,
       teamSize: body.teamSize,
       participants: participantsFrom(body),
       razorpayPaymentId: paymentId,
