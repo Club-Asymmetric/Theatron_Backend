@@ -119,13 +119,21 @@ const verify_payment = expressAsyncHandler(async (req, res) => {
     if (saved.duplicate) return res.status(409).json({ error: 'Payment already registered' });
 
     try {
-      await sendConfirmationEmail({ to: registration.email, name: registration.name, event });
+      await sendConfirmationEmail({
+        to: registration.email,
+        name: registration.name,
+        event,
+        registrationId: saved.registrationId,
+        amount: expectedAmount / 100,
+      });
       return res.status(201).json({
         success: true,
         registrationId: saved.registrationId,
         message: 'Registration confirmed',
+        emailSent: true,
       });
     } catch (error) {
+      console.error('❌ Failed to send confirmation email:', error);
       return res.status(201).json({
         success: true,
         registrationId: saved.registrationId,
