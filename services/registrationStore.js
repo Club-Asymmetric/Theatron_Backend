@@ -267,6 +267,79 @@ async function ensureQueriesSheet(sheets, spreadsheetId) {
   }
 }
 
+async function formatQueryRow(sheets, spreadsheetId, updatedRange) {
+  try {
+    const match = updatedRange?.match(/(\d+):[A-Z]+(\d+)/);
+    if (!match) return;
+    const startRow = parseInt(match[1], 10) - 1;
+    const endRow = parseInt(match[2], 10);
+
+    const meta = await sheets.spreadsheets.get({ spreadsheetId });
+    const qSheet = meta.data.sheets.find((s) => s.properties.title === 'Queries');
+    if (!qSheet) return;
+    const sheetId = qSheet.properties.sheetId;
+
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      resource: {
+        requests: [
+          {
+            repeatCell: {
+              range: {
+                sheetId,
+                startRowIndex: startRow,
+                endRowIndex: endRow,
+                startColumnIndex: 0,
+                endColumnIndex: 5,
+              },
+              cell: {
+                userEnteredFormat: {
+                  backgroundColor: { red: 1, green: 1, blue: 1 },
+                  horizontalAlignment: 'CENTER',
+                  verticalAlignment: 'MIDDLE',
+                  wrapStrategy: 'WRAP',
+                  textFormat: {
+                    fontFamily: 'Roboto',
+                    fontSize: 10,
+                    bold: false,
+                    foregroundColor: { red: 0.098, green: 0.098, blue: 0.098 },
+                  },
+                  borders: {
+                    top: { style: 'SOLID', width: 1, color: { red: 0.88, green: 0.88, blue: 0.88 } },
+                    bottom: { style: 'SOLID', width: 1, color: { red: 0.88, green: 0.88, blue: 0.88 } },
+                    left: { style: 'SOLID', width: 1, color: { red: 0.88, green: 0.88, blue: 0.88 } },
+                    right: { style: 'SOLID', width: 1, color: { red: 0.88, green: 0.88, blue: 0.88 } },
+                  },
+                },
+              },
+              fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment,wrapStrategy,borders)',
+            },
+          },
+          {
+            repeatCell: {
+              range: {
+                sheetId,
+                startRowIndex: startRow,
+                endRowIndex: endRow,
+                startColumnIndex: 4,
+                endColumnIndex: 5,
+              },
+              cell: {
+                userEnteredFormat: {
+                  horizontalAlignment: 'LEFT',
+                },
+              },
+              fields: 'userEnteredFormat.horizontalAlignment',
+            },
+          },
+        ],
+      },
+    });
+  } catch (err) {
+    console.error('Error formatting query row:', err.message);
+  }
+}
+
 async function createContactQuery({ name, email, subject, message }) {
   const sheets = getSheets();
   const spreadsheetId = getSpreadsheetId();
@@ -280,7 +353,7 @@ async function createContactQuery({ name, email, subject, message }) {
     message.trim(),
   ];
 
-  await sheets.spreadsheets.values.append({
+  const appendRes = await sheets.spreadsheets.values.append({
     spreadsheetId,
     range: "'Queries'!A:E",
     valueInputOption: 'USER_ENTERED',
@@ -288,6 +361,10 @@ async function createContactQuery({ name, email, subject, message }) {
     resource: { values: [row] },
   });
   console.log(`✅ Appended contact query from ${email} to Queries sheet`);
+
+  if (appendRes.data?.updates?.updatedRange) {
+    await formatQueryRow(sheets, spreadsheetId, appendRes.data.updates.updatedRange);
+  }
 }
 
 module.exports = { MASTER_HEADERS, EVENT_SHEET_MAP, findByPayment, createRegistration, createContactQuery, getSpreadsheetId };
