@@ -191,8 +191,8 @@ async function createRegistration(registration) {
     await sheets.spreadsheets.values.append({
       spreadsheetId: getSpreadsheetId(),
       range: `'${eventConfig.title}'!A:Z`,
-      valueInputOption: 'RAW',
-      insertDataOption: 'INSERT_ROWS',
+      valueInputOption: 'USER_ENTERED',
+      insertDataOption: 'OVERWRITE',
       resource: { values: [eventRow] },
     });
     console.log(`✅ Appended registration to event sheet: ${eventConfig.title}`);
@@ -222,8 +222,8 @@ async function createRegistration(registration) {
   await sheets.spreadsheets.values.append({
     spreadsheetId: getSpreadsheetId(),
     range: `'${masterSheet}'!A:Q`,
-    valueInputOption: 'RAW',
-    insertDataOption: 'INSERT_ROWS',
+    valueInputOption: 'USER_ENTERED',
+    insertDataOption: 'OVERWRITE',
     resource: { values: [masterRow] },
   });
   console.log(`✅ Appended registration to master sheet: ${masterSheet}`);
@@ -283,8 +283,8 @@ async function createContactQuery({ name, email, subject, message }) {
   await sheets.spreadsheets.values.append({
     spreadsheetId,
     range: "'Queries'!A:E",
-    valueInputOption: 'RAW',
-    insertDataOption: 'INSERT_ROWS',
+    valueInputOption: 'USER_ENTERED',
+    insertDataOption: 'OVERWRITE',
     resource: { values: [row] },
   });
   console.log(`✅ Appended contact query from ${email} to Queries sheet`);
