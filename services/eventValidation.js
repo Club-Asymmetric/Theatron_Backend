@@ -35,25 +35,18 @@ function validateEventDetails(event, body) {
   const commonError = validateCommonFields(body);
   if (commonError) return commonError;
 
-  if (event === 'stills-of-soul') {
+  if (['stills-of-soul', 'graphics-grid', 'cineplus'].includes(event)) {
     if (!body.submissionLink) return 'submissionLink is required';
     if (!/^https:\/\/(drive\.google\.com|docs\.google\.com)\//i.test(body.submissionLink)) {
       return 'submissionLink must be a Google Drive URL';
     }
   }
 
-  if (event === 'graphics-grid' && !isHttpUrl(body.submissionLink)) {
-    return 'submissionLink must be a poster submission URL (JPG, JPEG, PNG, or PDF)';
-  }
-
-  if (event === 'cineplus' && !isHttpUrl(body.submissionLink)) {
-    return 'submissionLink must be a video submission URL (maximum 3 minutes)';
+  if ((event === 'stage-play' || event === 'debate') && (typeof body.teamName !== 'string' || !body.teamName.trim())) {
+    return 'teamName is required';
   }
 
   if (event === 'stage-play' || event === 'debate' || event === 'adaptune') {
-    if ((event === 'stage-play' || event === 'debate') && (typeof body.teamName !== 'string' || !body.teamName.trim())) {
-      return 'teamName is required';
-    }
     const teamSize = Number(body.teamSize);
     let validTeamSize = false;
     let errorMessage = '';

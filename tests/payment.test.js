@@ -34,19 +34,19 @@ beforeEach(() => {
     orders: {
       create: jest.fn().mockResolvedValue({
         id: 'order_test',
-        amount: 9900,
+        amount: 8900,
         currency: 'INR',
         receipt: 'quizcorn_1',
       }),
       fetch: jest.fn().mockResolvedValue({
-        amount: 9900,
+        amount: 8900,
         currency: 'INR',
       }),
     },
     payments: {
       fetch: jest.fn().mockResolvedValue({
         order_id: 'order_test',
-        amount: 9900,
+        amount: 8900,
         status: 'captured',
       }),
     },
@@ -67,7 +67,7 @@ test('creates an order with a fixed amount', async () => {
     receipt: 'quizcorn_1',
   });
   expect(response.status).toBe(200);
-  expect(response.body.amount).toBe(9900);
+  expect(response.body.amount).toBe(8900);
 });
 
 test('rejects invalid event and contact fields', async () => {

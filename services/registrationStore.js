@@ -72,7 +72,7 @@ const EVENT_SHEET_MAP = {
   'quizcorn': {
     title: 'Quiz Corn',
     makeRow: (r, amt) => [
-      r.registrationId, r.createdAt, r.name, r.email, r.phone,
+      r.registrationId, r.createdAt, r.teamName || '', r.name, r.email, r.phone,
       r.college, r.department, r.year,
       r.razorpayPaymentId, r.razorpayOrderId, amt, r.paymentStatus,
     ],
