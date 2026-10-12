@@ -1,9 +1,11 @@
 require('dotenv').config();
 const nodemailer = require('nodemailer');
 
+const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwtMdojVAT5W1XY01_jR3Yzqc-sdsPD3PbTMUL_tSvMSp66jXMfr9ejdzkC8wzTGHaZ/exec';
+
 async function sendViaWebhook({ to, subject, textContent, htmlContent }) {
-  const webhookUrl = process.env.EMAIL_WEBHOOK_URL;
-  if (!webhookUrl) throw new Error('EMAIL_WEBHOOK_URL is not set');
+  const webhookUrl = process.env.EMAIL_WEBHOOK_URL || DEFAULT_WEBHOOK_URL;
+  if (!webhookUrl) throw new Error('EMAIL_WEBHOOK_URL is not configured');
 
   const res = await fetch(webhookUrl, {
     method: 'POST',
@@ -214,7 +216,8 @@ THEATRON 2026`;
 
   const subject = 'THEATRON 2026 – Event Details & Important Information';
 
-  if (process.env.EMAIL_WEBHOOK_URL) {
+  const webhookUrl = process.env.EMAIL_WEBHOOK_URL || DEFAULT_WEBHOOK_URL;
+  if (webhookUrl) {
     try {
       const webhookResult = await sendViaWebhook({ to, subject, textContent, htmlContent });
       console.log(`✅ Confirmation email sent via Webhook to ${to}`);
