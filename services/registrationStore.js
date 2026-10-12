@@ -188,7 +188,7 @@ async function createRegistration(registration) {
   const eventConfig = EVENT_SHEET_MAP[registration.event];
   if (eventConfig) {
     const eventRow = eventConfig.makeRow(registration, amountInRupees);
-    await sheets.spreadsheets.values.append({
+    const eventRes = await sheets.spreadsheets.values.append({
       spreadsheetId: getSpreadsheetId(),
       range: `'${eventConfig.title}'!A:Z`,
       valueInputOption: 'USER_ENTERED',
@@ -196,6 +196,9 @@ async function createRegistration(registration) {
       resource: { values: [eventRow] },
     });
     console.log(`✅ Appended registration to event sheet: ${eventConfig.title}`);
+    if (eventRes.data?.updates?.updatedRange) {
+      await formatAppendedRow(sheets, getSpreadsheetId(), eventConfig.title, eventRes.data.updates.updatedRange, eventRow.length);
+    }
   }
 
   // 2. Write to master Registrations sheet
@@ -219,7 +222,7 @@ async function createRegistration(registration) {
     registration.paymentStatus,
   ];
 
-  await sheets.spreadsheets.values.append({
+  const masterRes = await sheets.spreadsheets.values.append({
     spreadsheetId: getSpreadsheetId(),
     range: `'${masterSheet}'!A:Q`,
     valueInputOption: 'USER_ENTERED',
@@ -227,6 +230,9 @@ async function createRegistration(registration) {
     resource: { values: [masterRow] },
   });
   console.log(`✅ Appended registration to master sheet: ${masterSheet}`);
+  if (masterRes.data?.updates?.updatedRange) {
+    await formatAppendedRow(sheets, getSpreadsheetId(), masterSheet, masterRes.data.updates.updatedRange, masterRow.length);
+  }
 
   return { duplicate: false, registrationId: registration.registrationId };
 }
@@ -267,7 +273,7 @@ async function ensureQueriesSheet(sheets, spreadsheetId) {
   }
 }
 
-async function formatQueryRow(sheets, spreadsheetId, updatedRange) {
+async function formatAppendedRow(sheets, spreadsheetId, sheetTitle, updatedRange, colCount = 15) {
   try {
     const match = updatedRange?.match(/(\d+):[A-Z]+(\d+)/);
     if (!match) return;
@@ -275,9 +281,9 @@ async function formatQueryRow(sheets, spreadsheetId, updatedRange) {
     const endRow = parseInt(match[2], 10);
 
     const meta = await sheets.spreadsheets.get({ spreadsheetId });
-    const qSheet = meta.data.sheets.find((s) => s.properties.title === 'Queries');
-    if (!qSheet) return;
-    const sheetId = qSheet.properties.sheetId;
+    const targetSheet = meta.data.sheets.find((s) => s.properties.title === sheetTitle);
+    if (!targetSheet) return;
+    const sheetId = targetSheet.properties.sheetId;
 
     await sheets.spreadsheets.batchUpdate({
       spreadsheetId,
@@ -290,7 +296,7 @@ async function formatQueryRow(sheets, spreadsheetId, updatedRange) {
                 startRowIndex: startRow,
                 endRowIndex: endRow,
                 startColumnIndex: 0,
-                endColumnIndex: 5,
+                endColumnIndex: colCount,
               },
               cell: {
                 userEnteredFormat: {
@@ -315,28 +321,11 @@ async function formatQueryRow(sheets, spreadsheetId, updatedRange) {
               fields: 'userEnteredFormat(backgroundColor,textFormat,horizontalAlignment,verticalAlignment,wrapStrategy,borders)',
             },
           },
-          {
-            repeatCell: {
-              range: {
-                sheetId,
-                startRowIndex: startRow,
-                endRowIndex: endRow,
-                startColumnIndex: 4,
-                endColumnIndex: 5,
-              },
-              cell: {
-                userEnteredFormat: {
-                  horizontalAlignment: 'LEFT',
-                },
-              },
-              fields: 'userEnteredFormat.horizontalAlignment',
-            },
-          },
         ],
       },
     });
   } catch (err) {
-    console.error('Error formatting query row:', err.message);
+    console.error(`Error formatting appended row for ${sheetTitle}:`, err.message);
   }
 }
 
@@ -363,7 +352,7 @@ async function createContactQuery({ name, email, subject, message }) {
   console.log(`✅ Appended contact query from ${email} to Queries sheet`);
 
   if (appendRes.data?.updates?.updatedRange) {
-    await formatQueryRow(sheets, spreadsheetId, appendRes.data.updates.updatedRange);
+    await formatAppendedRow(sheets, spreadsheetId, 'Queries', appendRes.data.updates.updatedRange, 5);
   }
 }
 
