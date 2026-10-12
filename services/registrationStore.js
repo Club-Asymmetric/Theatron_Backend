@@ -229,4 +229,24 @@ async function createRegistration(registration) {
   return { duplicate: false, registrationId: registration.registrationId };
 }
 
-module.exports = { MASTER_HEADERS, EVENT_SHEET_MAP, findByPayment, createRegistration };
+async function createContactQuery({ name, email, subject, message }) {
+  const sheets = getSheets();
+  const row = [
+    new Date().toISOString(),
+    name.trim(),
+    email.trim().toLowerCase(),
+    subject.trim(),
+    message.trim(),
+  ];
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: getSpreadsheetId(),
+    range: "'Queries'!A:E",
+    valueInputOption: 'RAW',
+    insertDataOption: 'INSERT_ROWS',
+    resource: { values: [row] },
+  });
+  console.log(`✅ Appended contact query from ${email} to Queries sheet`);
+}
+
+module.exports = { MASTER_HEADERS, EVENT_SHEET_MAP, findByPayment, createRegistration, createContactQuery };

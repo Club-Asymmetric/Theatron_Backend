@@ -6,6 +6,7 @@ require('dotenv').config();
 const reg=require('./routers/registration');
 const payment=require('./routers/payment');
 const mail=require('./routers/mail');
+const contact=require('./routers/contact');
 
 const app = express();
 
@@ -40,6 +41,7 @@ app.use('/register',reg);
 app.use('/payment',payment);
 app.use('/mail',mail);
 app.use('/send_mail',send_mail);
+app.use('/contact',contact);
 app.get('/ping',(req,res)=>{
     res.send('pong');
 });
