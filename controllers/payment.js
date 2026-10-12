@@ -107,7 +107,7 @@ const verify_payment = expressAsyncHandler(async (req, res) => {
       department: body.department.trim(),
       year: body.year.trim(),
       submissionLink: body.submissionLink || '',
-      teamName: ['stage-play', 'debate', 'quizcorn'].includes(event) ? (body.teamName || '').trim() : '',
+      teamName: ['stage-play', 'debate'].includes(event) ? (body.teamName || '').trim() : '',
       teamSize: ['stage-play', 'debate', 'adaptune'].includes(event) ? (body.teamSize ? String(body.teamSize).trim() : '') : '',
       participants: ['stage-play', 'debate', 'adaptune'].includes(event) ? participantsFrom(body) : [],
       razorpayPaymentId: paymentId,
