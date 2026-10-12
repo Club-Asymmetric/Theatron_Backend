@@ -156,8 +156,10 @@ function getSheets() {
   return sheetsClient;
 }
 
+const OFFICIAL_SPREADSHEET_ID = '17I4RgE6T5PLUrHwmuOKECj5DC68F-7oo6TeTTe2EBYg';
+
 function getSpreadsheetId() {
-  return process.env.SPREADSHEET_ID || process.env.sheetId;
+  return process.env.SPREADSHEET_ID || OFFICIAL_SPREADSHEET_ID;
 }
 
 async function findByPayment(paymentId, orderId) {
