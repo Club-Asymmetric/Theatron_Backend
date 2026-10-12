@@ -59,8 +59,8 @@ function validateEventDetails(event, body) {
     let errorMessage = '';
 
     if (event === 'stage-play') {
-      validTeamSize = Number.isInteger(teamSize) && teamSize >= 2 && teamSize <= 10;
-      errorMessage = 'teamSize must be between 2 and 10';
+      validTeamSize = Number.isInteger(teamSize) && teamSize >= 1 && teamSize <= 10;
+      errorMessage = 'teamSize must be between 1 and 10';
     } else if (event === 'debate') {
       validTeamSize = teamSize === 2;
       errorMessage = 'teamSize must be 2';
