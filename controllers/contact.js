@@ -1,5 +1,13 @@
 const expressAsyncHandler = require('express-async-handler');
-const { createContactQuery } = require('../services/registrationStore');
+const { createContactQuery, getSpreadsheetId } = require('../services/registrationStore');
+
+const getContactInfo = expressAsyncHandler(async (req, res) => {
+  return res.status(200).json({
+    status: 'ok',
+    spreadsheetId: getSpreadsheetId(),
+    hasGoogleCreds: Boolean(process.env.GOOGLE_CREDENTIALS),
+  });
+});
 
 const submitContact = expressAsyncHandler(async (req, res) => {
   const { name, email, subject, message } = req.body || {};
@@ -32,4 +40,4 @@ const submitContact = expressAsyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { submitContact };
+module.exports = { submitContact, getContactInfo };

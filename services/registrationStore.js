@@ -229,8 +229,47 @@ async function createRegistration(registration) {
   return { duplicate: false, registrationId: registration.registrationId };
 }
 
+async function ensureQueriesSheet(sheets, spreadsheetId) {
+  try {
+    const meta = await sheets.spreadsheets.get({ spreadsheetId });
+    const hasQueries = meta.data.sheets.some((s) => s.properties.title === 'Queries');
+    if (!hasQueries) {
+      console.log(`Creating Queries tab in spreadsheet ${spreadsheetId}...`);
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        resource: {
+          requests: [
+            {
+              addSheet: {
+                properties: {
+                  title: 'Queries',
+                  gridProperties: { frozenRowCount: 1 },
+                },
+              },
+            },
+          ],
+        },
+      });
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: "'Queries'!A1:E1",
+        valueInputOption: 'RAW',
+        resource: {
+          values: [['Created At', 'Name', 'Email', 'Subject', 'Message']],
+        },
+      });
+      console.log('Queries tab created and initialized with headers.');
+    }
+  } catch (err) {
+    console.error('Error ensuring Queries sheet:', err.message);
+  }
+}
+
 async function createContactQuery({ name, email, subject, message }) {
   const sheets = getSheets();
+  const spreadsheetId = getSpreadsheetId();
+  await ensureQueriesSheet(sheets, spreadsheetId);
+
   const row = [
     new Date().toISOString(),
     name.trim(),
@@ -240,7 +279,7 @@ async function createContactQuery({ name, email, subject, message }) {
   ];
 
   await sheets.spreadsheets.values.append({
-    spreadsheetId: getSpreadsheetId(),
+    spreadsheetId,
     range: "'Queries'!A:E",
     valueInputOption: 'RAW',
     insertDataOption: 'INSERT_ROWS',
@@ -249,4 +288,4 @@ async function createContactQuery({ name, email, subject, message }) {
   console.log(`✅ Appended contact query from ${email} to Queries sheet`);
 }
 
-module.exports = { MASTER_HEADERS, EVENT_SHEET_MAP, findByPayment, createRegistration, createContactQuery };
+module.exports = { MASTER_HEADERS, EVENT_SHEET_MAP, findByPayment, createRegistration, createContactQuery, getSpreadsheetId };
