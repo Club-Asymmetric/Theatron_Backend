@@ -6,6 +6,12 @@ const getContactInfo = expressAsyncHandler(async (req, res) => {
     status: 'ok',
     spreadsheetId: getSpreadsheetId(),
     hasGoogleCreds: Boolean(process.env.GOOGLE_CREDENTIALS),
+    emailConfig: {
+      hasEmailUser: Boolean(process.env.EMAIL_USER),
+      emailUser: process.env.EMAIL_USER ? process.env.EMAIL_USER.slice(0, 3) + '***@' + (process.env.EMAIL_USER.split('@')[1] || '') : null,
+      hasEmailPass: Boolean(process.env.EMAIL_PASS),
+      passLength: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.trim().length : 0,
+    },
   });
 });
 

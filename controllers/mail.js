@@ -11,15 +11,19 @@ const send_mail = expressAsyncHandler(async (req, res) => {
   }
 
   try {
-    await sendConfirmationEmail({ to, name, event });
+    const result = await sendConfirmationEmail({ to, name, event });
     return res.status(200).json({
       success: true,
       message: 'Email sent successfully!',
+      messageId: result?.messageId,
     });
   } catch (error) {
+    console.error('❌ Failed to send email:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to send email',
+      error: error.message,
+      code: error.code || null,
     });
   }
 });

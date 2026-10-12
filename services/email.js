@@ -1,17 +1,25 @@
+require('dotenv').config();
 const nodemailer = require('nodemailer');
 
 async function sendViaGmail({ to, subject, textContent, htmlContent }) {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    throw new Error('Gmail service is not configured');
+  const user = (process.env.EMAIL_USER || '').trim();
+  const pass = (process.env.EMAIL_PASS || '').replace(/\s+/g, '');
+  if (!user || !pass) {
+    throw new Error('Gmail service is not configured (missing EMAIL_USER or EMAIL_PASS)');
   }
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: { user, pass },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
   });
 
   return await transporter.sendMail({
-    from: `"THEATRON 2026 - CIT" <${process.env.EMAIL_USER}>`,
-    replyTo: process.env.EMAIL_USER,
+    from: `"THEATRON 2026 - CIT" <${user}>`,
+    replyTo: user,
     to,
     subject,
     text: textContent,

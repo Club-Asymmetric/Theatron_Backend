@@ -139,6 +139,7 @@ const verify_payment = expressAsyncHandler(async (req, res) => {
         registrationId: saved.registrationId,
         message: 'Registration confirmed, but confirmation email delivery failed',
         emailSent: false,
+        emailError: error.message,
       });
     }
   })();
