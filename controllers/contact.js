@@ -27,6 +27,7 @@ const submitContact = expressAsyncHandler(async (req, res) => {
     console.error('Error saving contact query:', error);
     return res.status(500).json({
       error: 'Unable to save contact query. Please try again later.',
+      details: error.message,
     });
   }
 });
