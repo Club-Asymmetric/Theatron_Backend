@@ -62,8 +62,8 @@ function validateEventDetails(event, body) {
       validTeamSize = Number.isInteger(teamSize) && teamSize >= 2 && teamSize <= 10;
       errorMessage = 'teamSize must be between 2 and 10';
     } else if (event === 'debate') {
-      validTeamSize = [2, 3, 4].includes(teamSize);
-      errorMessage = 'teamSize must be 2, 3, or 4';
+      validTeamSize = teamSize === 2;
+      errorMessage = 'teamSize must be 2';
     } else if (event === 'adaptune') {
       validTeamSize = [1, 2].includes(teamSize);
       errorMessage = 'teamSize must be 1 or 2';
