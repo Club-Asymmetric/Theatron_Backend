@@ -11,6 +11,7 @@ const getContactInfo = expressAsyncHandler(async (req, res) => {
       emailUser: process.env.EMAIL_USER ? process.env.EMAIL_USER.slice(0, 3) + '***@' + (process.env.EMAIL_USER.split('@')[1] || '') : null,
       hasEmailPass: Boolean(process.env.EMAIL_PASS),
       passLength: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.trim().length : 0,
+      hasWebhook: Boolean(process.env.EMAIL_WEBHOOK_URL),
     },
   });
 });

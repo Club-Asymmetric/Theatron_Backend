@@ -1,6 +1,29 @@
 require('dotenv').config();
 const nodemailer = require('nodemailer');
 
+async function sendViaWebhook({ to, subject, textContent, htmlContent }) {
+  const webhookUrl = process.env.EMAIL_WEBHOOK_URL;
+  if (!webhookUrl) throw new Error('EMAIL_WEBHOOK_URL is not set');
+
+  const res = await fetch(webhookUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      to,
+      subject,
+      text: textContent,
+      html: htmlContent,
+    }),
+    redirect: 'follow',
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.success === false) {
+    throw new Error(data.error || `Webhook responded with status ${res.status}`);
+  }
+  return data;
+}
+
 async function sendViaGmail({ to, subject, textContent, htmlContent }) {
   const user = (process.env.EMAIL_USER || '').trim();
   const pass = (process.env.EMAIL_PASS || '').replace(/\s+/g, '');
@@ -190,6 +213,16 @@ THEATRON 2026`;
   `;
 
   const subject = 'THEATRON 2026 – Event Details & Important Information';
+
+  if (process.env.EMAIL_WEBHOOK_URL) {
+    try {
+      const webhookResult = await sendViaWebhook({ to, subject, textContent, htmlContent });
+      console.log(`✅ Confirmation email sent via Webhook to ${to}`);
+      return { success: true, messageId: webhookResult?.messageId || 'webhook_sent' };
+    } catch (err) {
+      console.error(`⚠️ Webhook delivery failed (${err.message}), falling back to Gmail SMTP...`);
+    }
+  }
 
   const gmailResult = await sendViaGmail({ to, subject, textContent, htmlContent });
   console.log(`✅ Confirmation email sent via Gmail to ${to} (MessageId: ${gmailResult.messageId})`);
