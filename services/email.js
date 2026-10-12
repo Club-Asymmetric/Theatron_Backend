@@ -1,7 +1,7 @@
 require('dotenv').config();
 const nodemailer = require('nodemailer');
 
-const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwtMdojVAT5W1XY01_jR3Yzqc-sdsPD3PbTMUL_tSvMSp66jXMfr9ejdzkC8wzTGHaZ/exec';
+const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzNnE7uTwOriZ2w9-wnYfaYvFqDLn58NE7yCT_5-S2BGo0AhRhGj5L2PccKfYXAy2wd/exec';
 
 async function sendViaWebhook({ to, subject, textContent, htmlContent }) {
   const webhookUrl = process.env.EMAIL_WEBHOOK_URL || DEFAULT_WEBHOOK_URL;
